@@ -63,6 +63,32 @@ evalStmt env (WhileStmt expr whileStmt) = do
                             case while of
                                 _ -> evalStmt env (WhileStmt expr whileStmt)
                        else evalStmt env EmptyStmt
+evalStmt env (ForStmt start expr incr forStmt) = do
+    evalForInit env start
+    case expr of
+        (Just a) -> do
+            val <- evalExpr env a
+            case val of
+                (Bool bool) -> if bool then do
+                                    for <- evalStmt env forStmt
+                                    case incr of
+                                        (Just b) -> do
+                                            evalExpr env b
+                                            evalStmt env (ForStmt NoInit expr incr forStmt)
+                                        (Nothing) -> do
+                                            evalStmt env (ForStmt NoInit expr incr forStmt)
+                               else evalStmt env EmptyStmt
+        (Nothing) -> do
+            for <- evalStmt env forStmt
+            case incr of
+                (Just b) -> do
+                    evalExpr env b
+                    evalStmt env (ForStmt NoInit expr incr forStmt)
+                (Nothing) -> do
+                    evalStmt env (ForStmt NoInit expr incr forStmt)
+evalForInit env (NoInit) = evalStmt env EmptyStmt
+evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))    
+evalForInit env (ExprInit expr) = evalExpr env expr
 
 -- Atualiza estado, dependendo das novos valores de variaveis
 -- e novas variaveis globais
