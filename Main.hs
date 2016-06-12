@@ -59,9 +59,12 @@ evalStmt env (WhileStmt expr whileStmt) = do
     val <- evalExpr env expr
     case val of
         (Bool bool) -> if bool then do
-                            while <- evalStmt env whileStmt
-                            case while of
-                                _ -> evalStmt env (WhileStmt expr whileStmt)
+                            case whileStmt of
+                                (BreakStmt tipo) -> evalStmt env (BreakStmt tipo)
+                                --não tá funcionando
+                                _ -> do
+                                    evalStmt env whileStmt
+                                    evalStmt env (WhileStmt expr whileStmt)
                        else evalStmt env EmptyStmt
 evalStmt env (ForStmt start expr incr forStmt) = do
     evalForInit env start
@@ -70,13 +73,17 @@ evalStmt env (ForStmt start expr incr forStmt) = do
             val <- evalExpr env a
             case val of
                 (Bool bool) -> if bool then do
-                                    for <- evalStmt env forStmt
-                                    case incr of
-                                        (Just b) -> do
-                                            evalExpr env b
-                                            evalStmt env (ForStmt NoInit expr incr forStmt)
-                                        (Nothing) -> do
-                                            evalStmt env (ForStmt NoInit expr incr forStmt)
+                                    case forStmt of
+                                        (BreakStmt tipo) -> evalStmt env (BreakStmt tipo)
+                                        --não tá funcionando
+                                        _ -> do
+                                            evalStmt env forStmt 
+                                            case incr of
+                                                (Just b) -> do
+                                                     evalExpr env b
+                                                     evalStmt env (ForStmt NoInit expr incr forStmt)
+                                                (Nothing) -> do
+                                                     evalStmt env (ForStmt NoInit expr incr forStmt)
                                else evalStmt env EmptyStmt
         (Nothing) -> do
             for <- evalStmt env forStmt
@@ -86,6 +93,7 @@ evalStmt env (ForStmt start expr incr forStmt) = do
                     evalStmt env (ForStmt NoInit expr incr forStmt)
                 (Nothing) -> do
                     evalStmt env (ForStmt NoInit expr incr forStmt)
+evalStmt env (BreakStmt tipo) = return Nil
 evalForInit env (NoInit) = evalStmt env EmptyStmt
 evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))    
 evalForInit env (ExprInit expr) = evalExpr env expr
