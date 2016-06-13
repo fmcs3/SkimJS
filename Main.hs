@@ -56,11 +56,11 @@ evalExpr env (DotRef (ArrayLit [])  ide) = evalExpr env (ArrayLit [])
 evalExpr env (DotRef (ArrayLit list)  ide) = do
     a <- mapM (evalExpr env) list
     if (unId ide) == "head" 
-        then return $ (List_head a) 
+        then return $ (List_head (head a)) 
         else if (unId ide) == "tail" 
-            then  return $ (List_tail a) 
+            then  return $ (List (tail a)) 
             else if (unId ide) == "concat" 
-                then evalStmt env EmptyStmt -- falta criar a funcao pra receber uma lista e concatenar
+                then  evalStmt env EmptyStmt
                 else evalStmt env EmptyStmt
 
 evalExpr env (DotRef (VarRef expr)  ide) = do

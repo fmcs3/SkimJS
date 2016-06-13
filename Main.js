@@ -78,7 +78,6 @@ var h = fatorial (5);
 */
 
 
-var l = [1,2,3];
+["a","b","c"].head;
 
-
-["a","b","c"].tail;
+[1,2,3,4].tail;
