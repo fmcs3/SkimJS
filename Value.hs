@@ -9,7 +9,7 @@ data Value = Bool Bool
     | Break
     | Nil
     | List [Value]
-    | List_head Value
+    
    
 
 --
@@ -25,7 +25,7 @@ instance Show Value where
   show Nil = "undefined"
   show (Function (Id id) args blockFunction) = "function: " ++ id
   show (List list) = show list
-  show (List_head list) = show (list)
+  
 
 
   

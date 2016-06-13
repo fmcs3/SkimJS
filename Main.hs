@@ -56,7 +56,7 @@ evalExpr env (DotRef (ArrayLit [])  ide) = evalExpr env (ArrayLit [])
 evalExpr env (DotRef (ArrayLit list)  ide) = do
     a <- mapM (evalExpr env) list
     if (unId ide) == "head" 
-        then return $ (List_head (head a)) 
+        then return $ ((head a)) 
         else if (unId ide) == "tail" 
             then  return $ (List (tail a)) 
             else if (unId ide) == "concat" 

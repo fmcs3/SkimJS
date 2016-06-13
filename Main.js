@@ -80,4 +80,4 @@ var h = fatorial (5);
 
 ["a","b","c"].head;
 
-[1,2,3,4].tail;
+
