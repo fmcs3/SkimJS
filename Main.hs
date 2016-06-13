@@ -31,6 +31,27 @@ evalExpr env (AssignExpr OpAssign (LVar var) expr) = do
             setVar var (val, Global) -- Adicionamos nova variavel como Local
         _ ->
             setValue var val -- Nesse Caso apenas mudamos o valor da variavel e não o seu tipo
+-- Chamando um função já definida
+evalExpr env (CallExpr expr args) = ST $ \s ->
+    let (ST a) = return Nil
+        (t, newS) = a s
+        (ST g) = do
+            val <- evalExpr env expr
+            evalHelper env (getIds val) args
+            evalStmt env (BlockStmt (getStatements val))
+        (resp,ign) = g newS
+        fEnv = update ign s
+        in (resp,fEnv)
+
+evalHelper :: StateT ->  [Id] ->  [Expression] -> StateTransformer Value
+evalHelper env ((Id a):[]) (b:[]) = do
+    val <- evalExpr env b
+    setVar a (val, Local)
+evalHelper env ((Id a):as) (b:bs) = do
+        val <- evalExpr env b
+        setVar a (val, Local)
+        evalHelper env as bs
+evalHelper _ _ _ = error "Número de argumentos errados"
 
 evalStmt :: StateT -> Statement -> StateTransformer Value
 evalStmt env EmptyStmt = return Nil
@@ -38,6 +59,10 @@ evalStmt env (VarDeclStmt []) = return Nil
 evalStmt env (VarDeclStmt (decl:ds)) =
     varDecl env decl >> evalStmt env (VarDeclStmt ds)
 evalStmt env (ExprStmt expr) = evalExpr env expr
+evalStmt env (BreakStmt tipo) = return Break
+evalStmt env (ReturnStmt Nothing) = return Nil
+evalStmt env (ReturnStmt (Just expr)) = evalExpr env expr
+-- If statements
 evalStmt env (IfSingleStmt expr ifStmt) = evalStmt env (IfStmt expr ifStmt EmptyStmt) -- Chama a função que já resolve para o if com else
 evalStmt env (IfStmt expr ifStmt elseStmt) = do
     val <- evalExpr env expr
@@ -47,11 +72,16 @@ evalStmt env (IfStmt expr ifStmt elseStmt) = do
                        else 
                             evalStmt env elseStmt
         Nil -> return val
+-- BlockStatements
 evalStmt env (BlockStmt (a:[])) = evalStmt env a
 evalStmt env (BlockStmt (a:as)) = do
     case a of
-        (BreakStmt a) -> return Break
+        (BreakStmt _) -> evalStmt env a
+        (ReturnStmt _) -> evalStmt env a
         _ -> evalStmt env a
+-----------------------
+-- Laços While e For --
+-----------------------
 evalStmt env (WhileStmt expr whileStmt) = do
     val <- evalExpr env expr
     case val of
@@ -78,12 +108,24 @@ evalStmt env (ForStmt start expr incr forStmt) = do
                                 else evalStmt env EmptyStmt
         (Nothing) -> do
             evalStmt env (ForStmt start (Just (BoolLit True)) incr forStmt)
-evalStmt env (BreakStmt tipo) = return Break
+-----------------------
+--      Fuction      --
+-----------------------
+evalStmt env (FunctionStmt (Id id) args functionBlock) = do
+    val <-  stateLookup env id
+    case val of 
+        Nil -> setVar id ((Function (Id id) args functionBlock),Global)
+        _ -> error $ "Variable " ++ show id ++ " already defiend."
 
-
+--
+-- Evaluate de first expression in a for loop
+--
 evalForInit env (NoInit) = return Nil
 evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))    
 evalForInit env (ExprInit expr) = evalExpr env expr
+
+
+
 
 -- Atualiza estado, dependendo das novos valores de variaveis
 -- e novas variaveis globais
@@ -98,6 +140,8 @@ update new old = newGlobal
 evaluate :: StateT -> [Statement] -> StateTransformer Value
 evaluate env [] = return Nil
 evaluate env stmts = foldl1 (>>) $ map (evalStmt env) stmts
+
+
 
 
 --

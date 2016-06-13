@@ -45,11 +45,18 @@ while (x < 15) {
 		x = x+1
 	}
 }
-*/
-
 for (var i = 0;  ; i = i + 1){
 	if (i > 20){
 		break;
 	    i = i + 2;
 	}
 }
+
+*/
+
+function dez(a,b,c){
+	return a + b + c;
+}
+
+
+var x = dez(10,10,10);

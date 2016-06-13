@@ -1,16 +1,17 @@
-module Value (Value (..)) where
+module Value (Value (..), getIds, getStatements) where
+import Language.ECMAScript3.Syntax
 
 data Value = Bool Bool
     | Int Int
     | String String
     | Var String
+    | Function Id [Id] [Statement]
     | Break
     | Nil
 
 --
 -- Pretty Printer
 --
-
 instance Show Value where 
   show (Bool True) = "true"
   show (Bool False) = "false"
@@ -19,6 +20,7 @@ instance Show Value where
   show (Var name) = name
   show (Break) = "Break"
   show Nil = "undefined"
+  show (Function (Id id) args blockFunction) = "function: " ++ id ++ " args:" ++ show args ++ " "
   
 -- This function could be replaced by (unwords.map show). The unwords
 -- function takes a list of String values and uses them to build a 
@@ -27,3 +29,14 @@ showListContents :: [Value] -> String
 showListContents [] = ""
 showListContents [a] = show a
 showListContents (a:as) = show a ++ ", " ++ (showListContents as)
+
+--
+-- Funções para ajuda
+--s
+getIds :: Value -> [Id]
+getIds (Function id ids functionBlock) = ids
+
+
+getStatements :: Value -> [Statement]
+getStatements (Function id ids functionBlock) = functionBlock
+
