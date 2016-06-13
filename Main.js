@@ -1,11 +1,3 @@
-var x = 0, y = 10;
-x + y;
-if (x == 1) {
-	var z = true;
-}
-else {
-	var x = 10;
-}
 
 //Programas 2 - Testando While
 /*
@@ -54,3 +46,10 @@ while (x < 15) {
 	}
 }
 */
+
+for (var i = 0;  ; i = i + 1){
+	if (i > 20){
+		break;
+	    i = i + 2;
+	}
+}

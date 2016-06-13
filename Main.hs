@@ -47,25 +47,20 @@ evalStmt env (IfStmt expr ifStmt elseStmt) = do
                        else 
                             evalStmt env elseStmt
         Nil -> return val
-evalStmt env (BlockStmt stmts) = ST $ \s -> -- Cada novo blockStmt criamos um novo "conjunto de variaveis"
-    let (ST a) = return Nil
-        (t, newS) = a s
-        (ST g) = do
-            evaluate env stmts -- forStmt :v
-        (resp,ign) = g newS
-        fEnv = update ign s
-        in (resp,fEnv)
+evalStmt env (BlockStmt (a:[])) = evalStmt env a
+evalStmt env (BlockStmt (a:as)) = do
+    case a of
+        (BreakStmt a) -> return Break
+        _ -> evalStmt env a
 evalStmt env (WhileStmt expr whileStmt) = do
     val <- evalExpr env expr
     case val of
         (Bool bool) -> if bool then do
-                            case whileStmt of
-                                (BreakStmt tipo) -> evalStmt env (BreakStmt tipo)
-                                --não tá funcionando
-                                _ -> do
-                                    evalStmt env whileStmt
-                                    evalStmt env (WhileStmt expr whileStmt)
-                       else evalStmt env EmptyStmt
+                            isBreak <-  evalStmt env whileStmt
+                            case isBreak of
+                                Break -> return Nil
+                                _ -> evalStmt env (WhileStmt expr whileStmt)
+                       else return Nil
 evalStmt env (ForStmt start expr incr forStmt) = do
     evalForInit env start
     case expr of
@@ -73,28 +68,20 @@ evalStmt env (ForStmt start expr incr forStmt) = do
             val <- evalExpr env a
             case val of
                 (Bool bool) -> if bool then do
-                                    case forStmt of
-                                        (BreakStmt tipo) -> evalStmt env (BreakStmt tipo)
-                                        --não tá funcionando
-                                        _ -> do
-                                            evalStmt env forStmt 
-                                            case incr of
-                                                (Just b) -> do
-                                                     evalExpr env b
-                                                     evalStmt env (ForStmt NoInit expr incr forStmt)
-                                                (Nothing) -> do
-                                                     evalStmt env (ForStmt NoInit expr incr forStmt)
-                               else evalStmt env EmptyStmt
+                                    isBreak <- evalStmt env forStmt 
+                                    case isBreak of
+                                        Break -> return Nil
+                                        _ -> case incr of 
+                                                (Just a) -> do evalExpr env a
+                                                               evalStmt env (ForStmt NoInit expr incr forStmt)
+                                                (Nothing) -> evalStmt env (ForStmt NoInit expr incr forStmt)
+                                else evalStmt env EmptyStmt
         (Nothing) -> do
-            for <- evalStmt env forStmt
-            case incr of
-                (Just b) -> do
-                    evalExpr env b
-                    evalStmt env (ForStmt NoInit expr incr forStmt)
-                (Nothing) -> do
-                    evalStmt env (ForStmt NoInit expr incr forStmt)
-evalStmt env (BreakStmt tipo) = return Nil
-evalForInit env (NoInit) = evalStmt env EmptyStmt
+            evalStmt env (ForStmt start (Just (BoolLit True)) incr forStmt)
+evalStmt env (BreakStmt tipo) = return Break
+
+
+evalForInit env (NoInit) = return Nil
 evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))    
 evalForInit env (ExprInit expr) = evalExpr env expr
 
