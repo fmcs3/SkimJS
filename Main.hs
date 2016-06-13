@@ -37,21 +37,12 @@ evalExpr env (CallExpr expr args) = ST $ \s ->
         (t, newS) = a s
         (ST g) = do
             val <- evalExpr env expr
-            evalHelper env (getIds val) args
+            evalFunctionArgs env (getIds val) args
             evalStmt env (BlockStmt (getStatements val))
         (resp,ign) = g newS
         fEnv = update ign s
         in (resp,fEnv)
 
-evalHelper :: StateT ->  [Id] ->  [Expression] -> StateTransformer Value
-evalHelper env ((Id a):[]) (b:[]) = do
-    val <- evalExpr env b
-    setVar a (val, Local)
-evalHelper env ((Id a):as) (b:bs) = do
-        val <- evalExpr env b
-        setVar a (val, Local)
-        evalHelper env as bs
-evalHelper _ _ _ = error "Número de argumentos errados"
 
 evalStmt :: StateT -> Statement -> StateTransformer Value
 evalStmt env EmptyStmt = return Nil
@@ -117,24 +108,7 @@ evalStmt env (FunctionStmt (Id id) args functionBlock) = do
         Nil -> setVar id ((Function (Id id) args functionBlock),Global)
         _ -> error $ "Variable " ++ show id ++ " already defiend."
 
---
--- Evaluate de first expression in a for loop
---
-evalForInit env (NoInit) = return Nil
-evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))    
-evalForInit env (ExprInit expr) = evalExpr env expr
 
-
-
-
--- Atualiza estado, dependendo das novos valores de variaveis
--- e novas variaveis globais
-update :: StateT -> StateT -> StateT
-update new old = newGlobal
-               where disjuction = Map.difference new old
-                     upda  = Map.intersection new old
-                     oldGlobal = Map.filter (\(val,kind) -> if kind == Global then True else False) disjuction
-                     newGlobal = Map.union oldGlobal upda
 
 -- Do not touch this one :)
 evaluate :: StateT -> [Statement] -> StateTransformer Value
@@ -196,6 +170,35 @@ helper :: StateT -> String -> Kind
 helper env var = case Map.lookup var env of
                     Nothing -> Nulo
                     Just (value,tipo) -> tipo
+
+--
+-- Inicializa os argumentos das funções
+--
+evalFunctionArgs :: StateT ->  [Id] ->  [Expression] -> StateTransformer Value
+evalFunctionArgs env ((Id a):[]) (b:[]) = do
+    val <- evalExpr env b
+    setVar a (val, Local)
+evalFunctionArgs env ((Id a):as) (b:bs) = do
+        val <- evalExpr env b
+        setVar a (val, Local)
+        evalFunctionArgs env as bs
+evalFunctionArgs _ _ _ = error "Número de argumentos errados"
+
+-- Atualiza estado, dependendo das novos valores de variaveis
+-- e novas variaveis globais
+update :: StateT -> StateT -> StateT
+update new old = newGlobal
+               where disjuction = Map.difference new old
+                     upda  = Map.intersection new old
+                     oldGlobal = Map.filter (\(val,kind) -> if kind == Global then True else False) disjuction
+                     newGlobal = Map.union oldGlobal upda
+
+--
+-- Evaluate the first expression in a for loop
+--
+evalForInit env (NoInit) = return Nil
+evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))    
+evalForInit env (ExprInit expr) = evalExpr env expr
                        
 --
 -- Types and boilerplate

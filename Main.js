@@ -55,8 +55,23 @@ for (var i = 0;  ; i = i + 1){
 */
 
 function dez(a,b,c){
+
+
 	return a + b + c;
 }
 
+function fatorial (n){
+    ola = 10;
+	if (n > 0){
+		return n*fatorial (n - 1)
+	} 
+	else {
+        return 1
+	}
+}
+dez(1,1,1);
 
-var x = dez(10,10,10);
+var x = fatorial (2);
+var y = fatorial (3);
+var z = fatorial (4);
+var h = fatorial (5);

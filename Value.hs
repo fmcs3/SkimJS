@@ -20,7 +20,7 @@ instance Show Value where
   show (Var name) = name
   show (Break) = "Break"
   show Nil = "undefined"
-  show (Function (Id id) args blockFunction) = "function: " ++ id ++ " args:" ++ show args ++ " "
+  show (Function (Id id) args blockFunction) = "function: " ++ id
   
 -- This function could be replaced by (unwords.map show). The unwords
 -- function takes a list of String values and uses them to build a 
@@ -32,7 +32,7 @@ showListContents (a:as) = show a ++ ", " ++ (showListContents as)
 
 --
 -- Funções para ajuda
---s
+--sssssss
 getIds :: Value -> [Id]
 getIds (Function id ids functionBlock) = ids
 
