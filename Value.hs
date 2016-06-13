@@ -8,6 +8,9 @@ data Value = Bool Bool
     | Function Id [Id] [Statement]
     | Break
     | Nil
+    | List [Value]
+    | List_head [Value]
+    | List_tail [Value]
 
 --
 -- Pretty Printer
@@ -21,6 +24,10 @@ instance Show Value where
   show (Break) = "Break"
   show Nil = "undefined"
   show (Function (Id id) args blockFunction) = "function: " ++ id
+  show (List list) = show list
+  show (List_head list) = show (head list)
+  show (List_tail list) = show (tail list)
+  
   
 -- This function could be replaced by (unwords.map show). The unwords
 -- function takes a list of String values and uses them to build a 

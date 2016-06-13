@@ -18,6 +18,7 @@ evalExpr env (VarRef (Id id)) = do
         Nil -> error $ "Variable " ++ show id ++ " not defiend." -- Cuidando do caso em que a variavel não foi definida previamente
         _ -> return val
 evalExpr env (IntLit int) = return $ Int int
+evalExpr env (StringLit word) = return $ String word
 evalExpr env (BoolLit bool) = return $ Bool bool
 evalExpr env (InfixExpr op expr1 expr2) = do
     v1 <- evalExpr env expr1
@@ -42,6 +43,29 @@ evalExpr env (CallExpr expr args) = ST $ \s ->
         (resp,ign) = g newS
         fEnv = update ign s
         in (resp,fEnv)
+
+------------------------------------------------------------------------------------
+-------------------------------  Lista ---------------------------------------------
+evalExpr env (ArrayLit []) = return $ (List [])
+evalExpr env (ArrayLit list) = do
+    a <- mapM (evalExpr env) list
+    return $ (List a) 
+-------------------------------------------------------------------------------------
+-----------------------------------  head, tail -------------------------------------
+evalExpr env (DotRef (ArrayLit [])  ide) = evalExpr env (ArrayLit [])
+evalExpr env (DotRef (ArrayLit list)  ide) = do
+    a <- mapM (evalExpr env) list
+    if (unId ide) == "head" 
+        then return $ (List_head a) 
+        else if (unId ide) == "tail" 
+            then  return $ (List_tail a) 
+            else if (unId ide) == "concat" 
+                then evalStmt env EmptyStmt -- falta criar a funcao pra receber uma lista e concatenar
+                else evalStmt env EmptyStmt
+
+evalExpr env (DotRef (VarRef expr)  ide) = do
+    a <- (evalExpr env (VarRef expr))
+    if (unId ide) == "head" then return $ a else evalStmt env EmptyStmt
 
 
 evalStmt :: StateT -> Statement -> StateTransformer Value

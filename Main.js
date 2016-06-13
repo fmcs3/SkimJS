@@ -53,7 +53,7 @@ for (var i = 0;  ; i = i + 1){
 }
 
 */
-
+/*
 function dez(a,b,c){
 
 
@@ -75,3 +75,10 @@ var x = fatorial (2);
 var y = fatorial (3);
 var z = fatorial (4);
 var h = fatorial (5);
+*/
+
+
+var l = [1,2,3];
+
+
+["a","b","c"].tail;
