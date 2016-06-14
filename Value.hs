@@ -1,4 +1,4 @@
-module Value (Value (..), getIds, getStatements) where
+module Value (Value (..), getIds, getStatements, getList) where
 import Language.ECMAScript3.Syntax
 
 data Value = Bool Bool
@@ -40,7 +40,7 @@ showListContents (a:as) = show a ++ ", " ++ (showListContents as)
 
 --
 -- Funções para ajuda
---sssssss
+--
 getIds :: Value -> [Id]
 getIds (Function id ids functionBlock) = ids
 
@@ -48,3 +48,5 @@ getIds (Function id ids functionBlock) = ids
 getStatements :: Value -> [Statement]
 getStatements (Function id ids functionBlock) = functionBlock
 
+getList :: Value -> [Value]
+getList (List list) = list

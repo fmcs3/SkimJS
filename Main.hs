@@ -2,7 +2,7 @@ import qualified Language.ECMAScript3.Parser as Parser
 import Language.ECMAScript3.Syntax
 import Control.Monad
 import Control.Applicative
-import Data.Map as Map (Map, insert, lookup, union, toList, empty, intersection, difference, filter)
+import Data.Map as Map (Map, insert, lookup, union, toList, empty, intersection, difference, filter, delete)
 import Debug.Trace
 import Value
 import Kind
@@ -32,6 +32,20 @@ evalExpr env (AssignExpr OpAssign (LVar var) expr) = do
             setVar var (val, Global) -- Adicionamos nova variavel como Local
         _ ->
             setValue var val -- Nesse Caso apenas mudamos o valor da variavel e não o seu tipo
+--
+-- List Functions
+--
+evalExpr env (CallExpr (DotRef (VarRef expr) (Id function)) refList) = do
+    list <- evalExpr env (VarRef expr)
+    case function of
+        "head" -> return (head (getList list))
+        "tail" -> return (List $ tail (getList list))
+        "concat" -> do 
+                    first <- evalExpr env (VarRef expr)
+                    second <- evalExpr env (head refList)
+                    return (List ((getList first) ++ (getList second)))
+        _ -> error "Função não definida"
+
 -- Chamando um função já definida
 evalExpr env (CallExpr expr args) = ST $ \s ->
     let (ST a) = return Nil
@@ -39,7 +53,9 @@ evalExpr env (CallExpr expr args) = ST $ \s ->
         (ST g) = do
             val <- evalExpr env expr
             evalFunctionArgs env (getIds val) args
-            evalStmt env (BlockStmt (getStatements val))
+            returnStmt <- evalStmt env (BlockStmt (getStatements val))
+            clearFunctionArgs env (getIds val)
+            return returnStmt
         (resp,ign) = g newS
         fEnv = update ign s
         in (resp,fEnv)
@@ -50,22 +66,6 @@ evalExpr env (ArrayLit []) = return $ (List [])
 evalExpr env (ArrayLit list) = do
     a <- mapM (evalExpr env) list
     return $ (List a) 
--------------------------------------------------------------------------------------
------------------------------------  head, tail -------------------------------------
-evalExpr env (DotRef (ArrayLit [])  ide) = evalExpr env (ArrayLit [])
-evalExpr env (DotRef (ArrayLit list)  ide) = do
-    a <- mapM (evalExpr env) list
-    if (unId ide) == "head" 
-        then return $ ((head a)) 
-        else if (unId ide) == "tail" 
-            then  return $ (List (tail a)) 
-            else if (unId ide) == "concat" 
-                then  evalStmt env EmptyStmt
-                else evalStmt env EmptyStmt
-
-evalExpr env (DotRef (VarRef expr)  ide) = do
-    a <- (evalExpr env (VarRef expr))
-    if (unId ide) == "head" then return $ a else evalStmt env EmptyStmt
 
 
 evalStmt :: StateT -> Statement -> StateTransformer Value
@@ -190,6 +190,9 @@ setVar var (val,kind) = ST $ \s -> (val, insert var (val, kind) s)
 setValue :: String -> Value -> StateTransformer Value
 setValue var val = ST $ \s -> (val, insert var (val, helper s var) s)
 
+deleteVar :: String  -> StateTransformer Value
+deleteVar var = ST $ \s -> (Nil, Map.delete var s)
+
 helper :: StateT -> String -> Kind
 helper env var = case Map.lookup var env of
                     Nothing -> Nulo
@@ -208,14 +211,22 @@ evalFunctionArgs env ((Id a):as) (b:bs) = do
         evalFunctionArgs env as bs
 evalFunctionArgs _ _ _ = error "Número de argumentos errados"
 
+clearFunctionArgs :: StateT -> [Id] ->  StateTransformer Value
+clearFunctionArgs env []     = return Nil
+clearFunctionArgs env ((Id a):[]) = deleteVar  a
+clearFunctionArgs env ((Id a):as) = do
+    deleteVar  a
+    clearFunctionArgs env as
+
 -- Atualiza estado, dependendo das novos valores de variaveis
 -- e novas variaveis globais
 update :: StateT -> StateT -> StateT
 update new old = newGlobal
-               where disjuction = Map.difference new old
+               where disjuction = Map.difference old new
+                     disjuction2 = Map.difference new old
                      upda  = Map.intersection new old
-                     oldGlobal = Map.filter (\(val,kind) -> if kind == Global then True else False) disjuction
-                     newGlobal = Map.union oldGlobal upda
+                     oldGlobal = Map.filter (\(val,kind) -> if kind == Global then True else False) disjuction2
+                     newGlobal = Map.union disjuction (Map.union oldGlobal upda)
 
 --
 -- Evaluate the first expression in a for loop
