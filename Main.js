@@ -60,12 +60,13 @@ if (x == 20) {
 }
 */
 
-
+/*
 function dez(a,b,c){
 	return a + b + c;
 }
 
 function fatorial (n){
+	var ola = 10;
 	if (n > 0){
 		return n*fatorial (n - 1)
 	} 
@@ -73,6 +74,7 @@ function fatorial (n){
         return 1
 	}
 }
+
 dez(1,1,1);
 
 var x = fatorial (2);
@@ -80,7 +82,7 @@ var y = fatorial (3);
 var z = fatorial (4);
 var h = fatorial (5);
 
-
+*/
 
 
 
@@ -132,7 +134,7 @@ A = [6, 34, 78, 98, 7, 56, 4, 90, 27, 2];
 B = quicksort(A, 0, 9);
 */
 
-/*
+
 z = [12,3,4];
 A = [2,4,2,3];
 
@@ -141,4 +143,3 @@ var ola2 = z.tail();
 var ola3 = z.concat(A);
 
 o = z;
-*/

@@ -89,11 +89,12 @@ evalStmt env (IfStmt expr ifStmt elseStmt) = do
         Nil -> return val
 -- BlockStatements
 evalStmt env (BlockStmt (a:[])) = evalStmt env a
-evalStmt env (BlockStmt (a:as)) = do
+evalStmt env (BlockStmt (a:as)) = 
     case a of
         (BreakStmt _) -> evalStmt env a
         (ReturnStmt _) -> evalStmt env a
-        _ -> evalStmt env a
+        _ -> do evalStmt env a
+                evalStmt env (BlockStmt as)
 -----------------------
 -- Laços While e For --
 -----------------------
