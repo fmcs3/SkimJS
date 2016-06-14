@@ -16,9 +16,10 @@ while (x < 15) {
 
 //Programa 3 - Testando for
 /*
-var x = 0, y = 10;
+var x = 1, y = 10;
 x + y;
 if (x == 1) {
+	p = 100;
 	var z = true;
 }
 else {
@@ -98,7 +99,7 @@ o = z;
 
 
 // Length function
-/*
+
 function len(A){
 	if (A == []){
 		return 0;
@@ -108,6 +109,7 @@ function len(A){
 	}
 }
 
+/*
 A = [1,2,3,4,5,6,7,8]
 B = []
 C = [2,3,4]
@@ -116,4 +118,8 @@ C = [2,3,4]
 a = len(A);
 b = len(B);
 c = len(C);
+
+if (A == C) {
+	ola = "Cade marcio";
+}
 */
