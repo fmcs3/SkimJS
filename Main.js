@@ -87,4 +87,51 @@ var h = fatorial (5);
 
 ["a","b","c"].head;
 
+//Programa 10 - Testando Quicksort recursivamente
+/*	
+function quicksort (A, esquerda, direita) {
+	if (esquerda<direita) {
+		particao = particiona(A, esquerda, direita);
+		quicksort(A, esquerda, particao-1);
+		quicksort(A, particao+1, direita);
+	}
+	return A
+}
+    
+	
+function particiona (A, esquerda, direita) {
+		
+	i=esquerda;
+	j=direita;
+	pivo=A[esquerda];
+	troca = 0;
+	troca2 = 0;
+	while (i<j) {
+		
+		while (A[i]<=pivo && i+1<A.length) {
+			i++;		
+		}
+		
+		while (A[j]>pivo && j-1>0) {
+			
+			j--;
+		}
+		
+		if (i<j) {
+			troca = A[i];
+			troca2 = A[j];
+			A[i]=troca2;
+			A[j]=troca;
+		}			
+	}
+	troca = A[esquerda];
+	troca2 = A[j];
+	A[esquerda]=troca2;
+	A[j]=troca;
+	return j;
+}
+
+A = [6, 34, 78, 98, 7, 56, 4, 90, 27, 2];
+B = quicksort(A, 0, 9);
+*/
 
