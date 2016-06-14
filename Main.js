@@ -45,14 +45,21 @@ while (x < 15) {
 		x = x+1
 	}
 }
-for (var i = 0;  ; i = i + 1){
-	if (i > 20){
-		break;
-	    i = i + 2;
-	}
-}
-
 */
+
+//Programa 5 - Testando break
+/*
+x = 20;
+for (var i = 0;  ; i = i + 1){
+	break;
+	x = 30;
+}
+if (x == 20) {
+	break;
+	x = 30;
+}
+*/
+
 /*
 function dez(a,b,c){
 
