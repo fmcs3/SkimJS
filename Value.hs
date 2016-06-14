@@ -8,7 +8,7 @@ data Value = Bool Bool
     | Function Id [Id] [Statement]
     | Break
     | Nil
-    | List [Value]
+    | List [Value] deriving (Eq)
     
    
 

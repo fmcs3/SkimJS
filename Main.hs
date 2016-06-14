@@ -20,6 +20,10 @@ evalExpr env (VarRef (Id id)) = do
 evalExpr env (IntLit int) = return $ Int int
 evalExpr env (StringLit word) = return $ String word
 evalExpr env (BoolLit bool) = return $ Bool bool
+evalExpr env (ArrayLit []) = return $ (List [])
+evalExpr env (ArrayLit list) = do
+    a <- mapM (evalExpr env) list
+    return $ (List a) 
 evalExpr env (InfixExpr op expr1 expr2) = do
     v1 <- evalExpr env expr1
     v2 <- evalExpr env expr2
@@ -59,14 +63,6 @@ evalExpr env (CallExpr expr args) = ST $ \s ->
         (resp,ign) = g newS
         fEnv = update ign s
         in (resp,fEnv)
-
-------------------------------------------------------------------------------------
--------------------------------  Lista ---------------------------------------------
-evalExpr env (ArrayLit []) = return $ (List [])
-evalExpr env (ArrayLit list) = do
-    a <- mapM (evalExpr env) list
-    return $ (List a) 
-
 
 evalStmt :: StateT -> Statement -> StateTransformer Value
 evalStmt env EmptyStmt = return Nil
@@ -142,7 +138,6 @@ evaluate env stmts = foldl1 (>>) $ map (evalStmt env) stmts
 
 
 
-
 --
 -- Operators
 --
@@ -162,6 +157,10 @@ infixOp env OpEq   (Bool v1) (Bool v2) = return $ Bool $ v1 == v2
 infixOp env OpNEq  (Bool v1) (Bool v2) = return $ Bool $ v1 /= v2
 infixOp env OpLAnd (Bool v1) (Bool v2) = return $ Bool $ v1 && v2
 infixOp env OpLOr  (Bool v1) (Bool v2) = return $ Bool $ v1 || v2
+infixOp env OpEq   (List v1) (List v2) = return $ Bool $ v1 == v2
+infixOp env OpNEq  (List v1) (List v2) = return $ Bool $ v1 /= v2
+infixOp env OpEq   (String v1) (String v2) = return $ Bool $ v1 == v2
+infixOp env OpNEq  (String v1) (String v2) = return $ Bool $ v1 /= v2
 
 --
 -- Environment and auxiliary functions
@@ -223,11 +222,11 @@ clearFunctionArgs env ((Id a):as) = do
 -- e novas variaveis globais
 update :: StateT -> StateT -> StateT
 update new old = newGlobal
-               where disjuction = Map.difference old new
-                     disjuction2 = Map.difference new old
-                     upda  = Map.intersection new old
-                     oldGlobal = Map.filter (\(val,kind) -> if kind == Global then True else False) disjuction2
-                     newGlobal = Map.union disjuction (Map.union oldGlobal upda)
+               where diffOldNew = Map.difference old new
+                     diffNewOld = Map.difference new old
+                     updateVar  = Map.intersection new old
+                     oldGlobal = Map.filter (\(val,kind) -> if kind == Global then True else False) diffNewOld
+                     newGlobal = Map.union diffOldNew (Map.union oldGlobal updateVar)
 
 --
 -- Evaluate the first expression in a for loop
