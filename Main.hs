@@ -260,10 +260,13 @@ instance Applicative StateTransformer where
 --
 -- Main and results functions
 --
+showEnviroment :: [(String,(Value,Kind))] -> [(String,Value)]
+showEnviroment [] = []
+showEnviroment ((var, (val,kind)):as) = (var, val) : showEnviroment as
 
 showResult :: (Value, StateT) -> String
 showResult (val, defs) =
-    show val ++ "\n" ++ show (toList $ union defs environment) ++ "\n"
+    show val ++ "\n" ++ show (showEnviroment.toList $ union defs environment) ++ "\n"
 
 getResult :: StateTransformer Value -> (Value, StateT)
 getResult (ST f) = f Map.empty
